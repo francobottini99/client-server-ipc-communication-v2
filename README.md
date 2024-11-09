@@ -1,13 +1,13 @@
 # Client-Server Sockets
 
-Sistema de comunicacion entre procesos por medio de sockects con arquitectura cliente-servidor.
+This project implements an inter-process communication system using sockets in a client-server architecture.
 
-### Autores:
-- **Bottini, Franco Nicolas**
+### Author:
+- **Franco Nicolas Bottini**
 
-### ¿ Como compilar ?
+## Compilation Instructions
 
-Para compilar el proyecto, una vez clonado el repositorio, basta con crear el Makefile utilizando el script CMake y ejecutarlo:
+To compile the project, after cloning the repository, generate the Makefile using the CMake script and run:
 
 ```bash
 $ git clone https://github.com/francobottini99/LINUXCLIENTSERVER2-2023.git
@@ -16,56 +16,59 @@ $ cmake .
 $ make
 ```
 
-Como salida obtendremos dos ejecutables ubicados en la carpeta `/bin`: `client` y `server`.
+This will produce two executables located in the `/bin` directory: `client` and `server`.
 
-> [!NOTE] 
-> Para compilar el proyecto es necesario tener instalado el paquete `ZLIB` en el equipo.
+> **Note**: The `ZLIB` package must be installed on your system to compile the project.
 
-## Cliente
+## Client
 
-Con el binario `client` se generan los procesos que se van a comunicar con el servidor por medio de sockets. Los clientes se pueden conectar con el servidor mediante tres tipos de sockets distintos: *UNIX* (0), *IPV4* (1) y *IPV6* (2). Ademas, Existen tres tipos de clientes, estos se diferencian en el tipo de tarea que solicitan realizar al servidor, estos son:
+The `client` binary creates processes that communicate with the server through sockets. Clients can connect to the server using three different types of sockets: *UNIX* (0), *IPV4* (1), and *IPV6* (2). Additionally, there are three types of clients, each differing in the type of task they request from the server:
 
-- *CLIENT_A* (0) -> Le solicita al usuario que ingrese un comando por consola que luego deriva al servidor para que este interactué con journalctl y obtener un resultado que imprime por consola. Este proceso se repite hasta que se finalice la instancia del cliente o del servidor.
+- **CLIENT_A** (0): Prompts the user to input a command via the console, which is then sent to the server to interact with `journalctl` and display the result. This repeats until either the client or server instance ends.
 
-- *CLIENT_B* (1) -> Le solicita al usuario que ingrese un comando por consola que luego deriba al servidor para que este interactué con journalctl y obtener el resultado en un archivo comprimido que almacena en la carpeta `/data` con el nombre `client_b_result_[yyyy]_[mm]_[dd]_[HH]_[mm]_[ss]`. Este proceso se repite hasta que se finalice la instancia del cliente o del servidor.
+- **CLIENT_B** (1): Prompts the user to input a command via the console, which is sent to the server to interact with `journalctl`. The result is compressed and stored in the `/data` directory as `client_b_result_[yyyy]_[mm]_[dd]_[HH]_[mm]_[ss]`. This repeats until either the client or server instance ends.
 
-- *CLIENT_C* (2) -> El cliente directamente solicita al servidor un informe con datos del sistema que imprime por consola una vez obtenido. Este proceso se ejecuta una única vez y luego finaliza la instancia del cliente.
+- **CLIENT_C** (2): Requests a system data report from the server and prints it to the console once received. This client runs only once and then terminates.
 
-Se puede hacer uso de este programa de la siguiente manera:
+### Usage Examples
 
 ```bash
-$ ./bin/Client 0 0          # Ejecuta un cliente A que se conecta al servidor por medio de un socket UNIX
-$ ./bin/Client 0 1 [IPV4]   # Ejecuta un cliente A que se conecta al servidor por medio de un socket IPV4
-$ ./bin/Client 0 2 [IPV6]   # Ejecuta un cliente A que se conecta al servidor por medio de un socket IP6 
+$ ./bin/Client 0 0          # Runs CLIENT_A connecting via UNIX socket
+$ ./bin/Client 0 1 [IPV4]   # Runs CLIENT_A connecting via IPV4 socket
+$ ./bin/Client 0 2 [IPV6]   # Runs CLIENT_A connecting via IPV6 socket
 
-$ ./bin/Client 1 0          # Ejecuta un cliente B que se conecta al servidor por medio de un socket UNIX
-$ ./bin/Client 1 1 [IPV4]   # Ejecuta un cliente B que se conecta al servidor por medio de un socket IPV4
-$ ./bin/Client 1 2 [IPV6]   # Ejecuta un cliente B que se conecta al servidor por medio de un socket IP6 
+$ ./bin/Client 1 0          # Runs CLIENT_B connecting via UNIX socket
+$ ./bin/Client 1 1 [IPV4]   # Runs CLIENT_B connecting via IPV4 socket
+$ ./bin/Client 1 2 [IPV6]   # Runs CLIENT_B connecting via IPV6 socket
 
-$ ./bin/Client 2 0          # Ejecuta un cliente C que se conecta al servidor por medio de un socket UNIX
-$ ./bin/Client 2 1 [IPV4]   # Ejecuta un cliente C que se conecta al servidor por medio de un socket IPV4
-$ ./bin/Client 2 2 [IPV6]   # Ejecuta un cliente C que se conecta al servidor por medio de un socket IP6 
+$ ./bin/Client 2 0          # Runs CLIENT_C connecting via UNIX socket
+$ ./bin/Client 2 1 [IPV4]   # Runs CLIENT_C connecting via IPV4 socket
+$ ./bin/Client 2 2 [IPV6]   # Runs CLIENT_C connecting via IPV6 socket
 ```
 
-Para utilizar los sockets IPV4 y IPV6 se debe especificar como tercer argumento la IP del servidor con el cual se quiere establecer conexion. Se pueden ejecutar tantos procesos cliente como se desee.
+When using IPV4 and IPV6 sockets, specify the server's IP address as the third argument to establish the connection. You can run multiple client processes simultaneously.
 
 ## Server
 
-Con el binario `server` se genera el proceso que crea los sockects a los cuales se van a conectar los clientes y se encarga de atender las solicitudes de los mismos. Para ejecutar el servidor basta con ejecutar el binario:
+The `server` binary creates the sockets to which clients connect and handles their requests. To run the server, use:
 
 ```bash
-$ ./bin/server # Ejecuta el Servidor
+$ ./bin/server  # Starts the server
 ```
 
-El proceso no admite múltiples ejecuciones, es decir, no puede haber mas de un proceso servidor corriendo en el equipo al mismo tiempo.
+Only one server process can run on the system at a time.
 
-## Funcionamiento
+## Functionality
 
-Al ejecutar el servidor se crea un socket de tipo **UNIX** en el equipo y se que queda a la espera de que se conecten clientes. Una vez que se conecta un cliente, este le enviá un mensaje al servidor indicándole el tipo de cliente que es y el servidor crea un hilo hijo que se encarga de atender las solicitudes de ese cliente. El hilo principal vuelve a quedar a la espera de que se conecten mas clientes. El hilo hijo atiende las solicitudes del cliente hasta que este se desconecta, en ese momento el hilo hijo finaliza su ejecución. El servidor puede atender múltiples clientes al mismo tiempo.
+When the server starts, it creates a **UNIX** socket and waits for client connections. Upon connection, the client sends a message indicating its type, and the server spawns a child thread to handle the client's requests. The main thread remains available to accept additional clients. The child thread continues to process the client's requests until the client disconnects, at which point the thread terminates. The server can handle multiple clients simultaneously.
 
-Para la comunicación a través del sockect, tanto el cliente como el servidor hacen uso de **API** de comunicación. Esta interfaz recibe la información a transmitir por el sockect en un *buffer* de memoria y ejecuta el siguiente protocolo:
+### Communication Protocol
 
-- Los datos a transmitir pasan por un proceso de fragmentación y encapsulación donde se generan `N` paquetes de tamaño fijo. Cada paquete queda encapsulado en una estructura que contiene un *array* `data` donde se almacena la información del fragmento y un conjunto de *headers*. Estas *headers* incluyen: un *checksum* calculado a partir del array `data`, el tamaño total de los datos antes de fragmentar, el tamaño del fragmento actual y un *flag* que indica si este es el ultimo fragmento generado. Ademas de esto, en la estructura se incluye un puntero al siguiente fragmento en la lista. La estructura es la siguiente:
+Client and server communication uses a **communication API** that transmits data via a buffer and follows this protocol:
+
+1. **Data Fragmentation & Encapsulation**: 
+   - Data to be transmitted is fragmented into `N` fixed-size packets. Each packet is encapsulated in a structure that includes an `array` named `data`, headers such as a checksum, total size, fragment size, and a flag indicating if it's the last fragment. A pointer to the next fragment in the list is also included.
+   - Example structure:
 
 ```c
 /**
@@ -83,7 +86,8 @@ typedef struct fragments
 } fragments;
 ```
 
-- Posterior a esto, Cada paquete pasa por una rutina donde se le da un formato de cadena **JSON**. Por ejemplo, si se quiere transmitir la entrada: `-n 10`, se genera el siguiente paquete:
+2. **JSON Formatting**: 
+   - Each packet is formatted into a **JSON** string. For instance, transmitting `-n 10` generates:
 
 ```json
 {
@@ -95,6 +99,8 @@ typedef struct fragments
 }
 ```
 
-- La cadena **JSON** se transmite por un extremo del sockect y se recibe por el otro. El receptor deserializa la cadena para obtener el paquete original, el receptor del paquete verifica que el *checksum* del paquete recibido sea igual al *checksum* calculado por el emisor. Si esto es así, se procede a almacenar el paquete en memoria. En caso contrario, se descarta el paquete y se solicita al emisor que lo reenvié. Este proceso se repite hasta que se reciben todos los fragmentos que conforman la información original.
+3. **Data Transmission**: 
+   - The JSON string is sent via the socket. The receiver deserializes the string, reconstructs the packet, and verifies the checksum. If valid, the packet is stored; otherwise, it is discarded and a retransmission request is sent. This continues until all fragments are received.
 
-- Finalmente, una vez obtenidos y almacenados todos los fragmentos, se realiza un proceso de desfragmentación, que desencapsula los datos y rearma la información original.
+4. **Defragmentation**: 
+   - Once all fragments are received and verified, they are reassembled to recreate the original data.
